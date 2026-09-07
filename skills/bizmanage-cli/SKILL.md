@@ -104,6 +104,7 @@ Ignore: `.bizmanage/` (especially `.bizmanage/file-hashes.json`, a rebuildable l
 - **Auth error** → `bizmanage logout && bizmanage login`.
 - **`npm test` fails with "Missing script: test"** → the project has no `package.json` test script configured; this isn't a code failure, it's a missing script. Use `--skip-tests` rather than trying to "fix" a test suite that doesn't exist.
 - **Validation failures** → run `bizmanage validate` (or `push --skip-tests`) to isolate whether it's validation vs. tests.
+- **"Possibly unbalanced HTML tags (N open, M close)" on a page** → the tag counter does not account for void/self-closing elements, so any page containing `<input>`, `<br>`, `<img>`, etc. reports a spurious imbalance. It is a warning, not an error, and does not block a push. Verify the markup really is well-formed (parse it, honouring the HTML void-element list) before spending time "fixing" it.
 - **Sync/cache weirdness** (e.g. after manual edits outside the CLI, merge conflicts, or the alias-agnostic cache gotcha above) → `bizmanage clear-cache`, or a targeted `push --all` for just the affected files.
 - **Pull blocked by local changes** → commit/push first, or `bizmanage pull -f` to force-overwrite (only after your local work is safely committed/pushed).
 - **Deploy verification** → after a push, pull the same selection back with `-f` into the git working tree and check `git diff --stat` is empty. A clean diff is a reliable signal the platform now has exactly what you pushed.

@@ -88,7 +88,37 @@ for (const id of ids) {
     try { scope.$apply(); } catch (ex) { } // wrap every apply: throws if already mid-digest
 }
 ```
-Bind a progress bar in the page HTML to `progress.current / progress.total`. Confirm before starting any bulk/destructive run with `await Modal.confirm("...")` (resolves truthy only on confirm — bail out otherwise); `Modal.choice('<table>', {data: {header, displayProp}})` and `Modal.prompt({...})` are the sibling dialogs for picking a record or free text. Report the outcome with `notify({message, classes: 'alert-success' | 'alert-danger'})`, and re-run the page's own load function afterward to refresh any on-screen counts.
+Bind a progress bar in the page HTML to `progress.current / progress.total`. Report the outcome with `notify({message, classes: 'alert-success' | 'alert-danger'})`, and re-run the page's own load function afterward to refresh any on-screen counts.
+
+### Dialogs, and where interactive controls have to live
+
+- `Modal.confirm("plain string")` — resolves truthy/falsy; check the result and bail out.
+- `Modal.confirm({header, msg, yes, variant})` — the object form **rejects (throws) on cancel** rather than resolving falsy, so it must be wrapped in `try/catch`. `msg` accepts HTML (e.g. `<b>`).
+- `Modal.choice('<table>', {data: {header, displayProp}})` picks a record; `Modal.prompt({...})` takes free text.
+- `Modal.open(templateUrl, ['$scope', fn], {size})` renders a **server-side template** (`/views/templates/...`), so it is only available for templates that already exist in core — a customization author cannot add one.
+- **Consequence:** a modal cannot host custom interactive controls (checkboxes, selects) bound to your own state — its `msg` HTML is not Angular-compiled, so `ng-model` inside it will not bind. When a confirmation needs real input (e.g. "which of these groups should this bulk action touch?"), build the confirmation as an **in-page step** — a card/panel toggled by a `scope` flag, with normal `ng-model` checkboxes and explicit Cancel / Confirm buttons — instead of a modal. A deliberate click on a button labelled with the exact affected count is a sound confirmation.
+
+### Counting records: watch for filtered list reads and null FKs
+
+Two traps when a page summarizes or bulk-operates over records grouped by a lookup/FK column:
+
+- **Object definitions can carry default `filters`.** A `definition.json` may include something like a filter on `archived` (`{"null": true}`), meaning list reads of that table return only unarchived rows. So a lookup table read can return *fewer* rows than the values actually referenced by your records, and any record pointing at a filtered-out row will silently have no matching entry.
+- **The FK can be `NULL`.** Records with no value set match neither `status = X` nor `status != X` in SQL (`NULL` comparisons are unknown), so a "not equal to" style filter silently excludes them — while naive client-side JS grouping (`p.status !== TARGET`) silently *includes* them. The two disagree, and the totals stop reconciling.
+
+Always group by the raw value, add an explicit bucket for `null`/unknown keys, and reconcile the per-group counts against the total record count before trusting any bulk action's "X records will change" number. Then show the breakdown to the user before writing anything.
+
+### Custom reports as a data source for pages
+
+A `list` report is a good way to load aggregates (a grouped `COUNT`) instead of reading every row into the browser. Practical constraints:
+
+- Execute a report from a page with `$http.get('cust_report/query/<id>')` (also usable as `<bmml-report id="<id>">` or `<bmml-data-src source-url="/cust_report/query/<id>">`); rows come back as `res.data.rows`.
+- **That endpoint is session-only.** Calling `restapi/cust_report/query/<id>` returns 404 and the internal path returns 401 with an API key, so a report cannot be executed with an API key the way `restapi/crud/*` can.
+- **Report ids are numeric, per-instance, and are not in the files `bizmanage-cli` pulls.** The pulled `<report>.json` has `internal_name`/`display_name` but no id. So an id referenced from a page is instance-specific: hardcode it in a clearly-named constant (matching platform convention) and have the code **fall back** to a CRUD read when the constant is unset or the call fails — otherwise the page breaks when deployed to another instance.
+- Reports are not exposed as a CRUD view: `restapi/crud/cust_reports/read` answers `The view "cust_reports" does not exist`.
+
+### SQL conventions in reports
+
+Reports are PostgreSQL. System tables are unqualified (`projects`, `customers`, `statuses`), customer-created tables live in a `custom.` schema (`custom.leases`, `custom.credit_reports`), and custom fields on any table carry a `__c` suffix (`p.subscription__c`). `order` is a reserved word — quote it (`s."order"`).
 
 This whole pattern (hidden `custom-script` action + thin page + internal `$http`/`fetch` calls + `scope.$apply()`-driven progress) has been built and deployed end-to-end successfully — validated with `bizmanage validate`, and confirmed live with a scoped `push` followed by a `pull -f` back into git showing an empty diff.
 
