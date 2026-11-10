@@ -46,6 +46,7 @@ Use this skill for BizManage instance-specific codebases. These repos are local 
 - Check deployed `backend_script` and `ai_tokens` metering when estimating automation costs; backend execution is not necessarily free, and nested script calls can add executions.
 - A script must contain a `return` somewhere; core validation rejects scripts without one.
 - Default timeout is 30 seconds unless metadata has `timeout`. Long-running scripts should declare a suitable timeout.
+- Script workers on core 3.1.484 have a one-connection DB pool. Propagate `trx` through every nested read/write, including permission lookups. `db.readOne(table, filter, order, clms, { trx })` takes options fifth; verify the deployed helper signature.
 - `callScript(name, envData)` waits for another shared worker; concurrent waiting parents can exhaust the worker pool. Prefer durable queued dispatch for background work. `callReport(id, data)` executes a custom report by numeric platform ID.
 - Verified on core 3.1.484: `scheduleScriptExecution(name, { after_ms, data: { body }, run_now: true }, user)` persists a queue row and requests a wake after the current worker finishes. It does not await the queued job. Keep long-job concurrency bounded so normal UI requests retain worker capacity.
 - Native queue `done_at` records transport completion, including caught script failures. Persist and display business outcomes separately; do not treat Queue Done as successful work.
