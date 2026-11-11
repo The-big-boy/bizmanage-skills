@@ -164,6 +164,8 @@ When behavior is unclear, inspect these core-system files if available:
 
 ## CLI Workflow
 
+- For native test coverage, pin compatible core and runner commits. The selected core's committed `scripts/customization-tests/coverage-contract.json` declares v1 (inline metadata) or v2 (native backend initializers). Never rewrite capability markers to bypass compatibility checks.
+
 `bizmanage-cli` uses the `bizmanage` binary. Official docs are at `https://github.com/bizmanagrcrm/bizmanage-cli`; see [[bizmanage-cli]] for the full command reference.
 
 - `bizmanage status --changes-only`: show local changed/new/deleted customization files.
