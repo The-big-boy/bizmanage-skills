@@ -67,6 +67,7 @@ Use this skill for BizManage instance-specific codebases. These repos are local 
 ## Pages And Actions
 
 - Pages are AngularJS/EJS-era HTML snippets rendered by BizManage. Common globals/components include `$urlParams`, `$now`, `goToExternalUrl`, `executeActionByName`, `<bmml-report>`, and `<bmml-data-src>`.
+- Core 3.1.484 enables Angular strict DI in both shells. Use explicit dependency annotations with `$injector.invoke` and other dynamically injected callbacks.
 - Native shell links use `/#/page/<url>`; `/pages/<url>` serves the page template. A hard navigation to `/page/<url>` is not the shell route.
 - Menu/action docs in the core repo are usually at `docs/menu-item.md`.
 - Action JSON is upserted by table plus `action_name`. Preserve `table_name` and `action_name` unless the user wants a new action.
