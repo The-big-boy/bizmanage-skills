@@ -45,6 +45,7 @@ Use this skill for BizManage instance-specific codebases. These repos are local 
 - For scheduled integrations, verify the deployed scheduler's timezone, overlap, and missed-run behavior. Use explicit business timezones and persistent checkpoints/reconciliation for resumable external writes.
 - Check deployed `backend_script` and `ai_tokens` metering when estimating automation costs; backend execution is not necessarily free, and nested script calls can add executions.
 - A script must contain a `return` somewhere; core validation rejects scripts without one.
+- The native admin **Run Script** control opens a session-authenticated GET `/scripts/run/<name>` (verified 3.1.485). The internal runner ignores metadata `method`; this is the existing UI path for empty-input setup scripts.
 - Default timeout is 30 seconds unless metadata has `timeout`. Long-running scripts should declare a suitable timeout.
 - On core 3.1.485, script timeout includes pool queueing and worker startup; timed-out queued work can still run. Do not treat a timeout as cancellation or automatically retry external effects.
 - Script workers on core 3.1.484 have a one-connection DB pool. Propagate `trx` through every nested read/write, including permission lookups. `db.readOne(table, filter, order, clms, { trx })` takes options fifth; verify the deployed helper signature.
@@ -167,6 +168,7 @@ When behavior is unclear, inspect these core-system files if available:
 ## CLI Workflow
 
 - For native test coverage, pin compatible core and runner commits. The selected core's committed `scripts/customization-tests/coverage-contract.json` declares v1 (inline metadata) or v2 (native backend initializers). Never rewrite capability markers to bypass compatibility checks.
+- Capture browser action coverage before a hard reload or tab close. End-of-test capture only sees the current document and can miss earlier executed actions.
 
 `bizmanage-cli` uses the `bizmanage` binary. Official docs are at `https://github.com/bizmanagrcrm/bizmanage-cli`; see [[bizmanage-cli]] for the full command reference.
 
