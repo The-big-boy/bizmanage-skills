@@ -46,6 +46,7 @@ Use this skill for BizManage instance-specific codebases. These repos are local 
 - Check deployed `backend_script` and `ai_tokens` metering when estimating automation costs; backend execution is not necessarily free, and nested script calls can add executions.
 - A script must contain a `return` somewhere; core validation rejects scripts without one.
 - Default timeout is 30 seconds unless metadata has `timeout`. Long-running scripts should declare a suitable timeout.
+- On core 3.1.485, script timeout includes pool queueing and worker startup; timed-out queued work can still run. Do not treat a timeout as cancellation or automatically retry external effects.
 - Script workers on core 3.1.484 have a one-connection DB pool. Propagate `trx` through every nested read/write, including permission lookups. `db.readOne(table, filter, order, clms, { trx })` takes options fifth; verify the deployed helper signature.
 - `db.query` uses Knex bindings (verified 3.1.484): literal `?` inside quoted SQL regexes is still a placeholder. Avoid it, e.g. use `[-]{0,1}` for an optional minus.
 - `callScript(name, envData)` waits for another shared worker; concurrent waiting parents can exhaust the worker pool. Prefer durable queued dispatch for background work. `callReport(id, data)` executes a custom report by numeric platform ID.
