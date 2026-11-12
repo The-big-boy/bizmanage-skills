@@ -69,6 +69,7 @@ Use this skill for BizManage instance-specific codebases. These repos are local 
 ## Pages And Actions
 
 - Pages are AngularJS/EJS-era HTML snippets rendered by BizManage. Common globals/components include `$urlParams`, `$now`, `goToExternalUrl`, `executeActionByName`, `<bmml-report>`, and `<bmml-data-src>`.
+- On core 3.1.493, Admin Custom Pages' "Public" column reflects published status; `access_policy` separately controls internal/external access.
 - Core 3.1.484 enables Angular strict DI in both shells. Use explicit dependency annotations with `$injector.invoke` and other dynamically injected callbacks.
 - Match select option types to `ng-model`: use numeric `ng-options`/`ng-value` for numeric models. Plain option values are strings and can leave the selection blank.
 - Native shell links use `/#/page/<url>`; `/pages/<url>` serves the page template. A hard navigation to `/page/<url>` is not the shell route.
